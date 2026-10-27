@@ -1,0 +1,48 @@
+using ShoppingCart.Api.Features.Catalogo;
+using ShoppingCart.Api.Shared.Networking.CatalogoApi;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddScoped<ICatalogoApiClient, CatalogoApiClient>();
+
+builder.Services.AddHttpClient<CatalogoApiService>((serviceProvider, httpClient)=>
+{
+    httpClient.BaseAddress = new Uri("http://localhost:5000");
+}).ConfigurePrimaryHttpMessageHandler(() => {
+    return new SocketsHttpHandler
+    {
+        PooledConnectionLifetime = TimeSpan.FromMinutes(5)
+    };
+}).SetHandlerLifetime(Timeout.InfiniteTimeSpan);
+
+builder.Services.AddOpenApi();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    // app.UseSwaggerUi(options => {
+    //     options.Path = "/openapi";
+    //     options.DocumentPath = "/openapi/v1.json";
+    // });
+
+    // app.UseReDoc(options => {
+    //     options.Path ="/openapi";
+    //     options.DocumentPath = "/openapi/v1.json";
+    // });
+
+    app.UseSwaggerUI(options => 
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "V1 Documentacion de Shopping Cart");
+    });
+
+}
+
+
+GetCatalogo.AddEndpoint(app);
+
+app.Run();

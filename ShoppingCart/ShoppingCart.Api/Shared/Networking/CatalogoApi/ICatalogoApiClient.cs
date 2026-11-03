@@ -7,5 +7,5 @@ public interface ICatalogoApiClient
 
     Task<IEnumerable<Catalogo>> GetProductsAsync(CancellationToken cancellationToken);
 
-    Task<Catalogo> GetProductByCodeAsync(string code, CancellationToken cancellationToken);
+    Task<Catalogo?> GetProductByCodeAsync(string code, CancellationToken cancellationToken);
 }

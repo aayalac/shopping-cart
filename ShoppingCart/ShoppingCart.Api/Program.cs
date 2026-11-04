@@ -1,4 +1,8 @@
+using Polly;
+using Polly.Fallback;
+using Polly.Simmy;
 using ShoppingCart.Api.Features.Catalogo;
+using ShoppingCart.Api.Shared.Domain.Models;
 using ShoppingCart.Api.Shared.Networking.CatalogoApi;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +20,24 @@ builder.Services.AddHttpClient<CatalogoApiService>((serviceProvider, httpClient)
         PooledConnectionLifetime = TimeSpan.FromMinutes(5)
     };
 }).SetHandlerLifetime(Timeout.InfiniteTimeSpan);
+
+builder.Services
+.AddResiliencePipeline<string, IEnumerable<Catalogo>>(
+            "catalogo-products",
+            pipelineBuilder => {
+                pipelineBuilder
+                .AddFallback(new FallbackStrategyOptions<IEnumerable<Catalogo>>
+                    {
+                        FallbackAction = _ 
+                        => Outcome
+                        .FromResultAsValueTask<IEnumerable<Catalogo>>(
+                            Enumerable.Empty<Catalogo>()
+                        )
+                    }
+                );
+            });
+
+
 
 builder.Services.AddOpenApi();
 
@@ -44,5 +66,6 @@ if (app.Environment.IsDevelopment())
 
 
 GetCatalogo.AddEndpoint(app);
+SearchProduct.AddEndpoint(app);
 
 app.Run();

@@ -1,15 +1,17 @@
 using Polly;
 using Polly.Fallback;
 using Polly.Simmy;
+using ShoppingCart.Api;
 using ShoppingCart.Api.Features.Catalogo;
 using ShoppingCart.Api.Shared.Domain.Models;
+using ShoppingCart.Api.Shared.Extensions;
 using ShoppingCart.Api.Shared.Networking.CatalogoApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddScoped<ICatalogoApiClient, CatalogoApiClient>();
+
 
 builder.Services.AddHttpClient<CatalogoApiService>((serviceProvider, httpClient)=>
 {
@@ -40,6 +42,9 @@ builder.Services
 
 
 builder.Services.AddOpenApi();
+builder.Services.RegisterPersistenceServices(builder.Configuration);
+builder.Services.RegisterApplicationServices();
+
 
 var app = builder.Build();
 
@@ -68,4 +73,5 @@ if (app.Environment.IsDevelopment())
 GetCatalogo.AddEndpoint(app);
 SearchProduct.AddEndpoint(app);
 
+app.ApplyMigration();
 app.Run();

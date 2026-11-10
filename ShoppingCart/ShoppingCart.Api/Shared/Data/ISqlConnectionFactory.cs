@@ -1,0 +1,8 @@
+using System.Data;
+
+namespace ShoppingCart.Api.Shared.Data;
+
+public interface ISqlConectionFactory
+{
+    IDbConnection CreateConnection();
+}

@@ -1,4 +1,8 @@
+using System.Data;
+using System.Reflection;
+using Dapper;
 using Microsoft.EntityFrameworkCore;
+using ShoppingCart.Api.Shared.Data;
 using ShoppingCart.Api.Shared.Networking.CatalogoApi;
 using ShoppingCart.Api.Shared.Persistence;
 
@@ -10,6 +14,9 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services
     )
     {
+        var currentAssembly = Assembly.GetExecutingAssembly();
+        services.AddAutoMapper(currentAssembly);
+        
         services.AddScoped<ICatalogoApiClient, CatalogoApiClient>();
         return services;
     }
@@ -19,7 +26,9 @@ public static class ServiceCollectionExtensions
         IConfiguration configuration
     )
     {
-        var connectionString = configuration.GetConnectionString("SqliteShoppingCart");
+        var connectionString = configuration
+        .GetConnectionString("SqliteShoppingCart") 
+        ?? throw new ArgumentNullException(nameof(configuration));
         
         services.AddDbContext<ShoppingDbContext>(opt => 
         {
@@ -29,6 +38,12 @@ public static class ServiceCollectionExtensions
 
             opt.UseSqlite(connectionString).UseSnakeCaseNamingConvention();
         });
+
+        services.AddSingleton<ISqlConectionFactory>(
+            _ => new SqlConnectionFactory(connectionString)
+        );
+
+        SqlMapper.AddTypeHandler(new GuidOnlyTypeHandler());
 
         return services;
     }

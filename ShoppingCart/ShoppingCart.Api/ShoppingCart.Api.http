@@ -1,6 +1,16 @@
-@ShoppingCart.Api_HostAddress = http://localhost:5013
+@ShoppingCart.Api_HostAddress = http://localhost:5001
 
-GET {{ShoppingCart.Api_HostAddress}}/weatherforecast/
+GET {{ ShoppingCart.Api_HostAddress }}/api/carts?cartId=4CAF9693-343B-4F98-BFF7-8619838C1627
+Accept: application/json
+
+###
+
+GET {{ ShoppingCart.Api_HostAddress }}/api/carts/INIT_PASS
+Accept: application/json
+
+###
+
+GET {{ ShoppingCart.Api_HostAddress }}/api/carts/PA/items
 Accept: application/json
 
 ###

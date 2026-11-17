@@ -7,6 +7,7 @@ using ShoppingCart.Api.Features.Catalogo;
 using ShoppingCart.Api.Shared.Domain.Models;
 using ShoppingCart.Api.Shared.Extensions;
 using ShoppingCart.Api.Shared.Networking.CatalogoApi;
+using ShoppingCart.Api.Shared.Slices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,11 +72,10 @@ if (app.Environment.IsDevelopment())
 }
 
 
-GetCatalogo.AddEndpoint(app);
-SearchProduct.AddEndpoint(app);
-GetCartById.AddEndpoint(app);
-GetCartByCode.AddEndpoint(app);
-GetCartSearch.AddEndpoint(app);
 
 app.ApplyMigration();
+
+
+
+app.MapSliceEndpoints();
 app.Run();

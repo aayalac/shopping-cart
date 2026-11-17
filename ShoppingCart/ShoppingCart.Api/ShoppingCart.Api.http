@@ -10,7 +10,7 @@ Accept: application/json
 
 ###
 
-GET {{ ShoppingCart.Api_HostAddress }}/api/carts/PA/items
+GET {{ ShoppingCart.Api_HostAddress }}/api/carts/INIT/items
 Accept: application/json
 
 ###

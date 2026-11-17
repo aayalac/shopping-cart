@@ -2,13 +2,14 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ShoppingCart.Api.Shared.Domain.Entities;
 using ShoppingCart.Api.Shared.Persistence;
+using ShoppingCart.Api.Shared.Slices;
 
 namespace ShoppingCart.Api.Features.Carts;
 
-public static class GetCartById
+public sealed class GetCartById : ISlice
 {
 
-    public static void AddEndpoint(IEndpointRouteBuilder app)
+    public void AddEndpoint(IEndpointRouteBuilder app)
     {
 
         app.MapGet("api/carts", async(

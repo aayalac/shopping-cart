@@ -1,11 +1,12 @@
 using ShoppingCart.Api.Shared.Networking.CatalogoApi;
+using ShoppingCart.Api.Shared.Slices;
 
 namespace ShoppingCart.Api.Features.Catalogo;
 
-public static class GetCatalogo
+public sealed class GetCatalogo : ISlice
 {
 
-    public static void AddEndpoint(IEndpointRouteBuilder app)
+    public void AddEndpoint(IEndpointRouteBuilder app)
     {
 
         app.MapGet("api/catalogo", async(

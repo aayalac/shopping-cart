@@ -1,11 +1,12 @@
 using ShoppingCart.Api.Shared.Networking.CatalogoApi;
+using ShoppingCart.Api.Shared.Slices;
 
 namespace ShoppingCart.Api.Features.Catalogo;
 
-public static class SearchProduct
+public sealed class SearchProduct : ISlice
 {
 
-    public static void AddEndpoint(IEndpointRouteBuilder app)
+    public void AddEndpoint(IEndpointRouteBuilder app)
     {
 
         app.MapGet("api/catalogo/{code}", async (

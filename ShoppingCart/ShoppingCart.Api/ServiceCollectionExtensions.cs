@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using ShoppingCart.Api.Shared.Data;
 using ShoppingCart.Api.Shared.Networking.CatalogoApi;
 using ShoppingCart.Api.Shared.Persistence;
+using ShoppingCart.Api.Shared.Slices;
 
 namespace ShoppingCart.Api;
 
@@ -14,6 +15,7 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services
     )
     {
+        services.RegisterSlices();
         var currentAssembly = Assembly.GetExecutingAssembly();
         services.AddAutoMapper(currentAssembly);
         

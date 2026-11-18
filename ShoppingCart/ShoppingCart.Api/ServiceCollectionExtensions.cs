@@ -18,6 +18,10 @@ public static class ServiceCollectionExtensions
         services.RegisterSlices();
         var currentAssembly = Assembly.GetExecutingAssembly();
         services.AddAutoMapper(currentAssembly);
+
+        services.AddMediatR(m => {
+            m.RegisterServicesFromAssemblies(currentAssembly);
+        });
         
         services.AddScoped<ICatalogoApiClient, CatalogoApiClient>();
         return services;

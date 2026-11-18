@@ -1,5 +1,7 @@
 using System.Text;
 using Dapper;
+using MediatR;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using ShoppingCart.Api.Shared.Data;
 using ShoppingCart.Api.Shared.Extensions;
 using ShoppingCart.Api.Shared.Slices;
@@ -16,17 +18,32 @@ public sealed class GetCartSearch : ISlice
             async (
                 string code,
                 ILoggerFactory logger,
-                ISqlConectionFactory sqlConnectionFactory,
+                IMediator mediator,
                 CancellationToken cancellationToken
             ) =>
             {
                 logger.CreateLogger("EndpointCartSearch")
                 .LogInformation("Consulta de busqueda de carrito por code");
 
-                var search = "%" + code.EncodeForLike() + "%";
-                var whereStatement = $" WHERE a.code LIKE @Search";
+                return await mediator.Send(new GetCartSearchQuery(code), cancellationToken);
+            }
+        );
+    }
 
-                var sql = new StringBuilder("""
+    public sealed class GetCartSearchQueryHandler(ISqlConectionFactory sqlConectionFactory)
+    : IRequestHandler<GetCartSearchQuery, IResult>
+    {
+        private readonly ISqlConectionFactory _sqlConnectionFactory = sqlConectionFactory;
+        public async Task<IResult> Handle(
+            GetCartSearchQuery request,
+            CancellationToken cancellationToken
+        )
+        {
+
+            var search = "%" + request.Code.EncodeForLike() + "%";
+            var whereStatement = $" WHERE a.code LIKE @Search";
+
+            var sql = new StringBuilder("""
                     SELECT 
                         a.id as Id,
                         a.code as Code,
@@ -36,40 +53,57 @@ public sealed class GetCartSearch : ISlice
                         LEFT JOIN items b
                             ON a.Id=b.cart_id
                 """
-                );
+            );
 
-                sql.AppendLine(whereStatement);
+            sql.AppendLine(whereStatement);
 
-                var cartDictionary = new Dictionary<string, CartDTO>();
+            var cartDictionary = new Dictionary<string, CartDTO>();
 
-                using var connection = sqlConnectionFactory.CreateConnection();
-                await connection.QueryAsync<CartDTO, ItemDTO, CartDTO>(
-                    sql.ToString(),
-                    (cart, item) =>
+            using var connection = _sqlConnectionFactory.CreateConnection();
+            await connection.QueryAsync<CartDTO, ItemDTO, CartDTO>(
+                sql.ToString(),
+                (cart, item) =>
+                {
+                    if (cartDictionary.TryGetValue(cart.Code, out var existingCart))
                     {
-                        if (cartDictionary.TryGetValue(cart.Code, out var existingCart))
-                        {
-                            cart = existingCart;
-                        }
-                        else
-                        {
-                            cartDictionary.Add(cart.Code, cart);
-                        }
+                        cart = existingCart;
+                    }
+                    else
+                    {
+                        cartDictionary.Add(cart.Code, cart);
+                    }
 
-                        cart.Items.Add(item);
-                        return cart;
-                    },
-                    new { Code = code, Search = search },
-                    splitOn: "ItemId"
-                );
+                    cart.Items.Add(item);
+                    return cart;
+                },
+                new { Code = request.Code, Search = search },
+                splitOn: "ItemId"
+            );
 
-                var resultados = cartDictionary.Values.ToList();
+            var resultados = cartDictionary.Values.ToList();
 
-                return Results.Ok(resultados);
-            }
-        );
+            // if(!resultados.Any())
+            // {
+            //     return Results.NotFound();
+            // }
+
+            return Results.Ok(resultados);
+        }
     }
 
+
+    public sealed class GetCartSearchQuery(string code) : IRequest<IResult>
+    {
+
+        public string Code { get; } = code;
+
+    }
+
+
+    public sealed class GetCartSearchResponse(IEnumerable<CartDTO> carts)
+    {
+        public IEnumerable<CartDTO> carts { get; } = carts;
+    }
 
     public sealed class CartDTO
     {

@@ -1,4 +1,6 @@
 using AutoMapper;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShoppingCart.Api.Shared.Domain.Entities;
 using ShoppingCart.Api.Shared.Persistence;
@@ -14,31 +16,63 @@ public sealed class GetCartById : ISlice
 
         app.MapGet("api/carts", async(
             Guid cartId,
+            IMediator mediator,
             ILoggerFactory logger,
-            ShoppingDbContext context,
-            IMapper mapper,
             CancellationToken cancellationToken
         ) => {
             
             logger.CreateLogger("EndpointCartItemsById")
             .LogInformation("Consulta de ShoppingCart por Id");
 
-            var cart = await context.Carts
+            return await mediator.Send(new GetCartByIdQuery(cartId), cancellationToken);
+           
+        });
+
+    }
+
+    public sealed class GetCartByIdQueryHandler(
+        ShoppingDbContext dbContext,
+        IMapper mapperMap
+    )
+    : IRequestHandler<GetCartByIdQuery, IResult>
+    {
+        
+        private readonly ShoppingDbContext _context = dbContext;
+        private readonly IMapper _mapper = mapperMap;
+        
+        public async Task<IResult> Handle(
+            GetCartByIdQuery request, 
+            CancellationToken cancellationToken
+        )
+        {
+            
+             var cart = await _context.Carts
             .Include(c => c.Items)
-            .Where(c => c.Id == cartId).FirstOrDefaultAsync();
+            .Where(c => c.Id == request.Id).FirstOrDefaultAsync();
 
             if (cart is null)
             {
                 return Results.NotFound();
             }
 
-            var cartDTO = mapper.Map<CartDTO>(cart);
+            var cartDTO = _mapper.Map<CartDTO>(cart);
 
            return Results.Ok(cartDTO);
-        });
 
+        }
     }
 
+
+    public sealed class GetCartByIdQuery(Guid id) : IRequest<IResult>
+    {
+      public Guid Id {get;} = id;
+    }
+
+
+    public sealed class GetCartByIdResponse(CartDTO cart)
+    {
+        public CartDTO Cart {get;} = cart;
+    }
 
     public sealed class CartMapProfile : Profile
     {

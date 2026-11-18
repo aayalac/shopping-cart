@@ -1,6 +1,7 @@
 
 
 using Dapper;
+using MediatR;
 using ShoppingCart.Api.Shared.Data;
 using ShoppingCart.Api.Shared.Slices;
 
@@ -16,14 +17,32 @@ public sealed class GetCartByCode : ISlice
             "api/carts/{code}",
             async (
                 string code,
+                IMediator mediator,
                 ILoggerFactory logger,
-                ISqlConectionFactory sqlConnectionFactory,
                 CancellationToken cancellationToken
             ) => {
 
                 logger.CreateLogger("EndpointCartByCode")
                 .LogInformation("Get Carrito de compra por el codigo");
+                
+                return await mediator.Send(
+                    new GetCartByCodeQuery(code), 
+                    cancellationToken
+                );
+            }
+        );
+    }
 
+    public sealed class GetCartByCodeQueryHandler(ISqlConectionFactory sqlConectionFactory)
+    : IRequestHandler<GetCartByCodeQuery, IResult>
+    {
+        private readonly ISqlConectionFactory _sqlConnectionFactory = sqlConectionFactory;
+        public async Task<IResult> Handle(
+            GetCartByCodeQuery request, 
+            CancellationToken cancellationToken
+        )
+        {
+          
                 const string sql = """
                     SELECT 
                        a.id as Id,
@@ -40,7 +59,7 @@ public sealed class GetCartByCode : ISlice
 
                 var cartDictionary = new Dictionary<string, CartDTO>();
 
-                using var connection = sqlConnectionFactory.CreateConnection();
+                using var connection = _sqlConnectionFactory.CreateConnection();
 
                 await connection.QueryAsync<CartDTO, ItemDTO, CartDTO >(
                     sql, 
@@ -57,16 +76,30 @@ public sealed class GetCartByCode : ISlice
 
                         return cart;
                     },
-                    new { CartCode = code },
+                    new { CartCode = request.Code },
                     splitOn: "ItemId"
                 );
                 
+                if(cartDictionary.Count == 0)
+                {
+                    return Results.NotFound();
+                }
+                
                 var resultados = cartDictionary.Values.ToList();
-                return Results.Ok(resultados);
-            }
-        );
+                return Results.Ok(new GetCartByCodeResponse(resultados));
+        }
     }
 
+    public sealed class GetCartByCodeQuery(string code) : IRequest<IResult>
+    {
+        public string Code {get;} = code;
+    }
+
+
+    public sealed class GetCartByCodeResponse(IEnumerable<CartDTO> carts)
+    {
+        public IEnumerable<CartDTO> Carts {get;} = carts;
+    }
 
     public sealed class CartDTO
     {

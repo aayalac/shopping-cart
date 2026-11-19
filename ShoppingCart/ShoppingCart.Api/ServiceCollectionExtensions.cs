@@ -2,7 +2,9 @@ using System.Data;
 using System.Reflection;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
+using ShoppingCart.Api.Shared.Behaviors;
 using ShoppingCart.Api.Shared.Data;
+using ShoppingCart.Api.Shared.Metrics;
 using ShoppingCart.Api.Shared.Networking.CatalogoApi;
 using ShoppingCart.Api.Shared.Persistence;
 using ShoppingCart.Api.Shared.Slices;
@@ -20,8 +22,12 @@ public static class ServiceCollectionExtensions
         services.AddAutoMapper(currentAssembly);
 
         services.AddMediatR(m => {
-            m.RegisterServicesFromAssemblies(currentAssembly);
+            m.RegisterServicesFromAssemblies(currentAssembly)
+            .AddOpenRequestPreProcessor(typeof(LoggingBehavior<>))
+            .AddOpenBehavior(typeof(HandlerPerformanceMetricBehavior<,>));
         });
+
+        services.AddSingleton<HandlerPerformanceMetric>();
         
         services.AddScoped<ICatalogoApiClient, CatalogoApiClient>();
         return services;

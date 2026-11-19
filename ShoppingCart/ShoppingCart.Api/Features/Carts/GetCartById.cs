@@ -17,13 +17,8 @@ public sealed class GetCartById : ISlice
         app.MapGet("api/carts", async(
             Guid cartId,
             IMediator mediator,
-            ILoggerFactory logger,
             CancellationToken cancellationToken
         ) => {
-            
-            logger.CreateLogger("EndpointCartItemsById")
-            .LogInformation("Consulta de ShoppingCart por Id");
-
             return await mediator.Send(new GetCartByIdQuery(cartId), cancellationToken);
            
         });

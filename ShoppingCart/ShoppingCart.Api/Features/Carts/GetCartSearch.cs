@@ -17,14 +17,10 @@ public sealed class GetCartSearch : ISlice
             "api/carts/{code}/items",
             async (
                 string code,
-                ILoggerFactory logger,
                 IMediator mediator,
                 CancellationToken cancellationToken
             ) =>
             {
-                logger.CreateLogger("EndpointCartSearch")
-                .LogInformation("Consulta de busqueda de carrito por code");
-
                 return await mediator.Send(new GetCartSearchQuery(code), cancellationToken);
             }
         );

@@ -18,13 +18,8 @@ public sealed class GetCartByCode : ISlice
             async (
                 string code,
                 IMediator mediator,
-                ILoggerFactory logger,
                 CancellationToken cancellationToken
             ) => {
-
-                logger.CreateLogger("EndpointCartByCode")
-                .LogInformation("Get Carrito de compra por el codigo");
-                
                 return await mediator.Send(
                     new GetCartByCodeQuery(code), 
                     cancellationToken

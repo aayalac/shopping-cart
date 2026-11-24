@@ -1,3 +1,6 @@
+using System.Net;
+using System.Text.Json;
+using Newtonsoft.Json;
 using ShoppingCart.Api.Shared.Domain.Models;
 
 namespace ShoppingCart.Api.Shared.Networking.CatalogoApi;
@@ -12,11 +15,6 @@ public sealed class CatalogoApiService(HttpClient httpClient)
         CancellationToken cancellationToken
     )
     {
-        if(random.NextDouble() < 0.6)
-        {
-            throw new ApplicationException("La Api de catalogo no esta disponible");
-        }
-        
         var content = await _httpClient
         .GetFromJsonAsync<IEnumerable<Catalogo>>(
             "/api/products", 
@@ -32,17 +30,23 @@ public sealed class CatalogoApiService(HttpClient httpClient)
         CancellationToken cancellationToken
     )
     {
-        if(random.NextDouble() < 0.6)
-        {
-            throw new ApplicationException(
-                "La api de catalogo por code no esta disponible"
-            );
-        }
-
-        var content = await _httpClient.GetFromJsonAsync<Catalogo>(
-            $"api/products/code/{code}", 
+        var response = await _httpClient.GetAsync(
+            $"api/products/code/{code}",
             cancellationToken
         );
+        
+        if(response.StatusCode == HttpStatusCode.NoContent)
+        {
+            return null;
+        }
+
+        var contentString = await response.Content.ReadAsStringAsync();
+        var content =  JsonConvert.DeserializeObject<Catalogo>(contentString);
+        
+        // var content = await _httpClient.GetFromJsonAsync<Catalogo>(
+        //     $"api/products/code/{code}", 
+        //     cancellationToken
+        // );
         return content;
     }
 

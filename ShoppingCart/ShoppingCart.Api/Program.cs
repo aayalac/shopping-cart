@@ -76,6 +76,6 @@ if (app.Environment.IsDevelopment())
 app.ApplyMigration();
 
 
-
+app.UseExceptionHandler();
 app.MapSliceEndpoints();
 app.Run();

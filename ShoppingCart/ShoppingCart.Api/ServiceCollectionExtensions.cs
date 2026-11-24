@@ -1,9 +1,11 @@
 using System.Data;
 using System.Reflection;
 using Dapper;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using ShoppingCart.Api.Shared.Behaviors;
 using ShoppingCart.Api.Shared.Data;
+using ShoppingCart.Api.Shared.Exceptions;
 using ShoppingCart.Api.Shared.Metrics;
 using ShoppingCart.Api.Shared.Networking.CatalogoApi;
 using ShoppingCart.Api.Shared.Persistence;
@@ -17,6 +19,9 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services
     )
     {
+        services.AddExceptionHandler<GlobalExceptionHandler>();
+        services.AddProblemDetails();
+        
         services.RegisterSlices();
         var currentAssembly = Assembly.GetExecutingAssembly();
         services.AddAutoMapper(currentAssembly);
@@ -24,8 +29,11 @@ public static class ServiceCollectionExtensions
         services.AddMediatR(m => {
             m.RegisterServicesFromAssemblies(currentAssembly)
             .AddOpenRequestPreProcessor(typeof(LoggingBehavior<>))
+            .AddOpenBehavior(typeof(ModelValidationBehavior<,>))
             .AddOpenBehavior(typeof(HandlerPerformanceMetricBehavior<,>));
         });
+
+        services.AddValidatorsFromAssembly(currentAssembly);
 
         services.AddSingleton<HandlerPerformanceMetric>();
         

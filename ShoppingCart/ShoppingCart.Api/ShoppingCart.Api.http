@@ -14,3 +14,37 @@ GET {{ ShoppingCart.Api_HostAddress }}/api/carts/INIT/items
 Accept: application/json
 
 ###
+
+POST {{ ShoppingCart.Api_HostAddress }}/api/carts/e7280281-d8de-493d-b593-dcbd94bb15ea/items
+Accept: application/json
+Content-Type: application/json
+
+{
+    "code": "oPdqwTI33kum5GXYG6Ubg",
+    "quantity": 10
+}
+
+###
+
+POST {{ ShoppingCart.Api_HostAddress }}/api/carts/e7280281-d8de-493d-b593-dcbd94bb15ea/items
+Accept: application/json
+Content-Type: application/json
+
+{
+    "code": "TEST01-PRUEBA-ERROR",
+    "quantity": 10
+}
+
+###
+
+POST {{ ShoppingCart.Api_HostAddress }}/api/carts/e7280281-d8de-493d-b593-dcbd94bb15ea/items
+Accept: application/json
+Content-Type: application/json
+
+{
+    "code": "",
+    "quantity": 0
+}
+
+###
+
